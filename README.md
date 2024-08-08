@@ -21,5 +21,5 @@
 # [Download](https://github.com/xT-Development/xt-spawn)
 
 ### Credits:
-[qbx_spawn](https://github.com/Qbox-project/qbx_spawn)
-[ox_core](https://github.com/overextended/ox_core/blob/lua/client/spawn.lua#L187) - Player switching
+- [qbx_spawn](https://github.com/Qbox-project/qbx_spawn)
+- [ox_core](https://github.com/overextended/ox_core/blob/lua/client/spawn.lua#L187) - Player switching
