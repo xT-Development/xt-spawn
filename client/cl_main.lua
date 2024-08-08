@@ -64,7 +64,9 @@ local function housesMenu(houses)
         id = 'houses_spawn_menu',
         title = 'Choose House',
         position = 'top-left',
-        canClose = false,
+        onClose = function()
+            lib.showMenu('spawn_menu')
+        end,
         options = spawnLocations
     }, function(selected, scrollIndex, args)
         local locationIndex = args?.location or 0
