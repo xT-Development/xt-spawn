@@ -165,7 +165,3 @@ RegisterNetEvent('qb-spawn:client:openUI', function(value)
         spawnMenu()
     end
 end)
-
-RegisterCommand('spawn', function()
-    TriggerEvent('qb-spawn:client:openUI', true)
-end)
