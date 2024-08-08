@@ -121,6 +121,7 @@ local function spawnMenu()
         spawnLocations[#spawnLocations+1] = {
             label = 'View Owned Houses',
             icon = 'fas fa-house-chimney',
+            description = 'Spawn at the front door of one of your owned properties!'
             args = houses
         }
     end
@@ -148,20 +149,20 @@ local function spawnMenu()
 end
 
 local GetPlayerSwitchState = GetPlayerSwitchState
-RegisterNetEvent('qb-spawn:client:openUI', function(value)
+local function openSpawnUI()
     SetEntityVisible(cache.ped, false)
     DoScreenFadeOut(500)
     Wait(1000)
     DoScreenFadeIn(500)
-    utils.setChoosingSpawnState(value)
+    utils.setChoosingSpawnState(true)
 
-    if value then
-        SwitchOutPlayer(cache.ped, 0, 1)
+    SwitchOutPlayer(cache.ped, 0, 1)
 
-        while GetPlayerSwitchState() ~= 5 do
-            Wait(0)
-        end
-
-        spawnMenu()
+    while GetPlayerSwitchState() ~= 5 do
+        Wait(0)
     end
-end)
+
+    spawnMenu()
+end
+
+AddEventHandler('qb-spawn:client:setupSpawns', openSpawnUI)
