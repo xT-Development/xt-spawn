@@ -4,7 +4,8 @@ return {
         icon = 'fas fa-building',
         groups = false,
         coords = vector4(196.61, -943.22, 30.69, 306.86),
-        iconAnimation = 'fade'
+        -- iconAnimation = 'fade'
+        -- iconColor = 'green'
     },
 
     {
