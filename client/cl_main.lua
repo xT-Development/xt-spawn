@@ -121,7 +121,7 @@ local function spawnMenu()
         spawnLocations[#spawnLocations+1] = {
             label = 'View Owned Houses',
             icon = 'fas fa-house-chimney',
-            description = 'Spawn at the front door of one of your owned properties!'
+            description = 'Spawn at the front door of one of your owned properties!',
             args = houses
         }
     end
