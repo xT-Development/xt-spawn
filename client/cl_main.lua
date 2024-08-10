@@ -1,6 +1,6 @@
 local lib               = lib
 local qbx_core          = exports.qbx_core
-local spawn_options     = lib.load('configs.spawns')
+local config            = lib.load('configs.client')
 local utils             = lib.load('client.utils')
 
 playerData = {}
@@ -32,14 +32,14 @@ end
 
 -- Confirm Spawn Location --
 local function spawnConfirmation(info)
-    local spawnName = (info.type == 'normal' and spawn_options[info.location].label) or (info.type == 'current' and 'Last Location') or (info.type == 'house' and info.name)
+    local spawnName = (info.type == 'normal' and config.spawns[info.location].label) or (info.type == 'current' and 'Last Location') or (info.type == 'house' and info.name)
     local confirmation = lib.alertDialog({
         header = 'Spawn Confirmation',
         content = ('Are you sure you want to spawn here?  \n\n**%s**'):format(spawnName),
         centered = true,
         cancel = true
     })
-    return (confirmation == 'cancel') and false or confirmation
+    return (confirmation == 'confirm')
 end
 
 -- View Owned Houses --
@@ -47,9 +47,11 @@ local function housesMenu(houses)
     local spawnLocations = {}
 
     for x = 1, #houses do
+        local optionID = #spawnLocations+1
         local houseInfo = houses[x]
-        spawnLocations[#spawnLocations+1] = {
+        spawnLocations[optionID] = {
             label = houseInfo.label,
+            title = houseInfo.label,
             icon = 'fas fa-house',
             args = {
                 location = x,
@@ -58,26 +60,47 @@ local function housesMenu(houses)
                 type = 'house'
             }
         }
+
+        if config.useContext then
+            spawnLocations[optionID].onSelect = function()
+                local confirmSpawn = spawnConfirmation(spawnLocations[optionID].args)
+                if confirmSpawn then
+                    spawnPlayer(spawnLocations[optionID].args.coords)
+                else
+                    lib.showContext('houses_spawn_menu')
+                end
+            end
+        end
     end
 
-    lib.registerMenu({
-        id = 'houses_spawn_menu',
-        title = 'Choose House',
-        position = 'top-left',
-        onClose = function()
-            lib.showMenu('spawn_menu')
-        end,
-        options = spawnLocations
-    }, function(selected, scrollIndex, args)
-        local locationIndex = args?.location or 0
-        local confirmSpawn = spawnConfirmation(args)
-        if confirmSpawn then
-            spawnPlayer(args.coords)
-        else
-            lib.showMenu('spawn_menu')
-        end
-    end)
-    lib.showMenu('houses_spawn_menu')
+    if config.useContext then
+        lib.registerContext({
+            id = 'houses_spawn_menu',
+            title = 'Choose House',
+            menu = 'spawn_menu',
+            canClose = false,
+            options = spawnLocations
+        })
+        lib.showContext('houses_spawn_menu')
+    else
+        lib.registerMenu({
+            id = 'houses_spawn_menu',
+            title = 'Choose House',
+            position = 'top-left',
+            onClose = function()
+                lib.showMenu('spawn_menu')
+            end,
+            options = spawnLocations
+        }, function(selected, scrollIndex, args)
+            local confirmSpawn = spawnConfirmation(args)
+            if confirmSpawn then
+                spawnPlayer(args.coords)
+            else
+                lib.showMenu('spawn_menu')
+            end
+        end)
+        lib.showMenu('houses_spawn_menu')
+    end
 end
 
 -- Open Spawn Menu --
@@ -87,22 +110,37 @@ local function spawnMenu()
     local spawnLocations = {}
 
     if playerData.position then
-        spawnLocations[#spawnLocations+1] = {
+        local optionID = #spawnLocations+1
+        spawnLocations[optionID] = {
             label = 'Last Location',
+            title = 'Last Location',
             icon = 'fas fa-map-pin',
             args = {
                 coords = playerData.position,
                 type = 'current'
             }
         }
+
+        if config.useContext then
+            spawnLocations[optionID].onSelect = function()
+                local confirmSpawn = spawnConfirmation(spawnLocations[optionID].args)
+                if confirmSpawn then
+                    spawnPlayer(spawnLocations[optionID].args.coords)
+                else
+                    lib.showContext('spawn_menu')
+                end
+            end
+        end
     end
 
-    for x = 1, #spawn_options do
-        local info = spawn_options[x]
+    for x = 1, #config.spawns do
+        local info = config.spawns[x]
         local hasGroups = utils.groupsCheck(info.groups)
         if hasGroups then
-            spawnLocations[#spawnLocations+1] = {
+            local optionID = #spawnLocations+1
+            spawnLocations[optionID] = {
                 label = info.label,
+                title = info.label,
                 description = info?.description,
                 icon = info?.icon,
                 iconColor = info?.iconColor,
@@ -113,39 +151,67 @@ local function spawnMenu()
                     type = 'normal'
                 }
             }
+
+            if config.useContext then
+                spawnLocations[optionID].onSelect = function()
+                    local confirmSpawn = spawnConfirmation(spawnLocations[optionID].args)
+                    if confirmSpawn then
+                        spawnPlayer(spawnLocations[optionID].args.coords)
+                    else
+                        lib.showContext('spawn_menu')
+                    end
+                end
+            end
         end
     end
 
     local houses = lib.callback.await('qbx_spawn:server:getHouses')
     if houses and houses[1] then
-        spawnLocations[#spawnLocations+1] = {
+        local optionID = #spawnLocations+1
+        spawnLocations[optionID] = {
             label = 'View Owned Houses',
+            title = 'View Owned Houses',
             icon = 'fas fa-house-chimney',
             description = 'Spawn at the front door of one of your owned properties!',
             args = houses
         }
+
+        if config.useContext then
+            spawnLocations[optionID].onSelect = function()
+                housesMenu(houses)
+            end
+        end
     end
 
-    lib.registerMenu({
-        id = 'spawn_menu',
-        title = 'Choose Spawn Location',
-        position = 'top-left',
-        canClose = false,
-        options = spawnLocations
-    }, function(selected, scrollIndex, args)
-        if (selected ~= #spawnLocations) then
-            local locationIndex = args?.location or 0
-            local confirmSpawn = spawnConfirmation(args)
-            if confirmSpawn then
-                spawnPlayer(args.coords)
+    if config.useContext then
+        lib.registerContext({
+            id = 'spawn_menu',
+            title = 'Choose Spawn Location',
+            canClose = false,
+            options = spawnLocations
+        })
+        lib.showContext('spawn_menu')
+    else
+        lib.registerMenu({
+            id = 'spawn_menu',
+            title = 'Choose Spawn Location',
+            position = 'top-left',
+            canClose = false,
+            options = spawnLocations
+        }, function(selected, scrollIndex, args)
+            if (selected ~= #spawnLocations) then
+                local confirmSpawn = spawnConfirmation(args)
+                if confirmSpawn then
+                    spawnPlayer(args.coords)
+                else
+                    lib.showMenu('spawn_menu')
+                end
             else
-                lib.showMenu('spawn_menu')
+                housesMenu(args)
             end
-        else
-            housesMenu(args)
-        end
-    end)
-    lib.showMenu('spawn_menu')
+        end)
+        lib.showMenu('spawn_menu')
+    end
 end
 
 local GetPlayerSwitchState = GetPlayerSwitchState
