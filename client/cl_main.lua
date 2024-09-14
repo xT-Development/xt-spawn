@@ -8,6 +8,7 @@ playerData = {}
 local function cleanupPlayerSpawned()
     FreezeEntityPosition(cache.ped, false)
     SetEntityVisible(cache.ped, true)
+    playerData = {}
 end
 
 local function playerLoaded()
