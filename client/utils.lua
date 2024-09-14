@@ -22,11 +22,13 @@ local function loadingSpinner()
     BeginTextCommandBusyspinnerOn("SPAWNSTR")
     EndTextCommandBusyspinnerOn(4)
 
-    while GetPlayerSwitchState() ~= 12 do
-        Wait(0)
-    end
+    CreateThread(function()
+        while GetPlayerSwitchState() ~= 12 do
+            Wait(0)
+        end
 
-    BusyspinnerOff()
+        BusyspinnerOff()
+    end)
 end
 
 local utils = {}
@@ -42,7 +44,7 @@ function utils.groupsCheck(groups)
     if not groups then return true end
     local callback = false
     for x = 1, #groups do
-        if playerData.job.name == groups[x] then
+        if playerData.job and playerData.job.name == groups[x] then
             callback = true
             break
         end
