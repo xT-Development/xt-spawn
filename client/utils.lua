@@ -9,11 +9,14 @@ local HasCollisionLoadedAroundEntity = HasCollisionLoadedAroundEntity
 
 local function initDisableControlsThread()
     CreateThread(function()
+        LocalPlayer.state.invBusy = true
         while playerState.choosingSpawn do
             DisableAllControlActions(0)
             Wait(0)
         end
     end)
+
+    LocalPlayer.state.invBusy = false
 end
 
 local function loadingSpinner()
