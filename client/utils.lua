@@ -14,9 +14,9 @@ local function initDisableControlsThread()
             DisableAllControlActions(0)
             Wait(0)
         end
+        --- we need to add this inside the thread to prevent the inventory from being disabled when the player is done selecting the spawn.
+        LocalPlayer.state.invBusy = false
     end)
-
-    LocalPlayer.state.invBusy = false
 end
 
 local function loadingSpinner()
